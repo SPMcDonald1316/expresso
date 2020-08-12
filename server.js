@@ -12,6 +12,10 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(cors());
 
+//Import api router and mount
+const apiRouter = require('./api/api');
+app.use('/api', apiRouter);
+
 //Set PORT, start server, and export for testing
 const PORT = process.env.PORT || 4000;
 app.listen(PORT);

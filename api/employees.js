@@ -20,6 +20,10 @@ employeesRouter.param('employeeId', (req, res, next, employeeId) => {
   });
 });
 
+//Import timesheet router and mount
+const timesheetsRouter = require('./timesheets');
+employeesRouter.use('/timesheets', timesheetsRouter);
+
 //Routes
 employeesRouter.get('/', (req, res, next) => {
   db.all('SELECT * FROM Employee WHERE is_current_employee = 1', (err, employees) => {

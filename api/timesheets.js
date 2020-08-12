@@ -55,4 +55,29 @@ timesheetsRouter.post('/', (req, res, next) => {
   });
 });
 
+timesheetsRouter.put('/:timesheetId', (req, res, next) => {
+  const timesheet = req.body.timesheet;
+  if (!timesheet.hours || !timesheet.rate || !timesheet.date) {
+    return res.sendStatus(400);
+  }
+  db.run('UPDATE Timesheet SET hours = $hours, rate = $rate, date = $date WHERE id = $id', {
+    $hours: timesheet.hours,
+    $rate: timesheet.rate,
+    $date: timesheet.date,
+    $id: req.params.timesheetId
+  }, (err) => {
+    if (err) {
+      next(err);
+    } else {
+      db.get(`SELECT * FROM Timesheet WHERE id = ${req.params.timesheetId}`, (err, timesheet) => {
+        if (err) {
+          next(err);
+        } else {
+          res.status(200).json({timesheet: timesheet});
+        }
+      });
+    }
+  });
+});
+
 module.exports = timesheetsRouter;

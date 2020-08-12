@@ -7,7 +7,18 @@ const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
 //Route Parameter
-
+employeesRouter.param('employeeId', (req, res, next, employeeId) => {
+  db.get(`SELECT * FROM Employee WHERE id = ${employeeId}`, (err, employee) => {
+    if (err) {
+      next(err);
+    } else if (employee) {
+      req.employee = employee;
+      next();
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
 
 //Routes
 employeesRouter.get('/', (req, res, next) => {
@@ -40,6 +51,53 @@ employeesRouter.post('/', (req, res, next) => {
           next(err);
         } else {
           res.status(201).json({employee: employee});
+        }
+      });
+    }
+  });
+});
+
+employeesRouter.get('/:employeeId', (req, res, next) => {
+  res.status(200).json({employee: req.employee});
+});
+
+employeesRouter.put('/:employeeId', (req, res, next) => {
+  const employee = req.body.employee;
+  if (!employee.name || !employee.position || !employee.wage) {
+    return res.sendStatus(400);
+  }
+  const isEmployed = employee.isCurrentEmployee === 0 ? 0 : 1;
+  db.run('UPDATE Employee SET name = $name, position = $position, wage = $wage, is_current_employee = $isCurrentEmployee WHERE id = $id', {
+    $name: employee.name,
+    $position: employee.position,
+    $wage: employee.wage,
+    $isCurrentEmployee: isEmployed,
+    $id: req.params.employeeId
+  }, (err) => {
+    if (err) {
+      next(err);
+    } else {
+      db.get(`SELECT * FROM Employee WHERE id = ${req.params.employeeId}`, (err, employee) => {
+        if (err) {
+          next(err);
+        } else {
+          res.status(200).json({employee: employee});
+        }
+      });
+    }
+  });
+});
+
+employeesRouter.delete('/:employeeId', (req, res, next) => {
+  db.run(`UPDATE Employee SET is_current_employee = 0 WHERE id = ${req.params.employeeId}`, (err) => {
+    if (err) {
+      next(err);
+    } else {
+      db.get(`SELECT * FROM Employee WHERE id = ${req.params.employeeId}`, (err, employee) => {
+        if (err) {
+          next(err);
+        } else {
+          res.status(200).json({employee: employee});
         }
       });
     }

@@ -22,7 +22,7 @@ employeesRouter.param('employeeId', (req, res, next, employeeId) => {
 
 //Import timesheet router and mount
 const timesheetsRouter = require('./timesheets');
-employeesRouter.use('/timesheets', timesheetsRouter);
+employeesRouter.use('/:employeeId/timesheets', timesheetsRouter);
 
 //Routes
 employeesRouter.get('/', (req, res, next) => {

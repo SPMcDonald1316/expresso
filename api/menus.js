@@ -20,6 +20,10 @@ menusRouter.param('menuId', (req, res, next, id) => {
   });
 });
 
+//Import menu items router and mount
+const menuItemsRouter = require('./menuItems');
+menusRouter.use('/:menuId/menu-items', menuItemsRouter);
+
 //Routes
 menusRouter.get('/', (req, res, next) => {
   db.all('SELECT * FROM Menu', (err, menus) => {

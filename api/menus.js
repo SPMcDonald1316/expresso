@@ -6,6 +6,20 @@ const menusRouter = express.Router();
 const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database(process.env.TEST_DATABASE || './database.sqlite');
 
+//Route Parameter
+menusRouter.param('menuId', (req, res, next, id) => {
+  db.get(`SELECT * FROM Menu WHERE id = ${id}`, (err, menu) => {
+    if (err) {
+      next(err);
+    } else if (menu) {
+      req.menu = menu;
+      next();
+    } else {
+      res.sendStatus(404);
+    }
+  });
+});
+
 //Routes
 menusRouter.get('/', (req, res, next) => {
   db.all('SELECT * FROM Menu', (err, menus) => {
@@ -33,6 +47,33 @@ menusRouter.post('/', (req, res, next) => {
           next(err);
         } else {
           res.status(201).json({menu: menu});
+        }
+      });
+    }
+  });
+});
+
+menusRouter.get('/:menuId', (req, res, next) => {
+  res.status(200).json({menu: req.menu});
+});
+
+menusRouter.put('/:menuId', (req, res, next) => {
+  const menu = req.body.menu;
+  if (!menu.title) {
+    return res.sendStatus(400);
+  }
+  db.run('UPDATE Menu SET title = $title WHERE id = $id', {
+    $title: menu.title,
+    $id: req.params.menuId
+  }, (err) => {
+    if (err) {
+      next(err);
+    } else {
+      db.get(`SELECT * FROM Menu WHERE id = ${req.params.menuId}`, (err, menu) => {
+        if (err) {
+          next(err);
+        } else {
+          res.status(200).json({menu: menu});
         }
       });
     }
